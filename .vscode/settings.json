@@ -1,4 +1,5 @@
 {
   "editor.formatOnSave": true,
-  "prettier.tabWidth": 2
+  "prettier.tabWidth": 2,
+  "cSpell.words": ["treeify"]
 }

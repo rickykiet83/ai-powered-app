@@ -3,6 +3,7 @@ import type { Request, Response } from 'express';
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import express from 'express';
+import z from 'zod';
 
 dotenv.config();
 
@@ -16,7 +17,22 @@ const port = process.env.PORT || 3000;
 
 const conversations = new Map<string, string>();
 
+const chatSchema = z.object({
+  prompt: z
+    .string()
+    .trim()
+    .min(1, 'Prompt is required')
+    .max(1000, 'Prompt is too long (max 1000 characters)'),
+  conversationId: z.uuid(),
+});
+
 app.post('/api/chat', async (req: Request, res: Response) => {
+  const parseResult = chatSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    res.status(400).json(z.treeifyError(parseResult.error));
+    return;
+  }
+
   const { prompt, conversationId } = req.body;
 
   // models: https://platform.openai.com/docs/models/compare?model=o4-mini
