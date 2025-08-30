@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 
 import OpenAI from 'openai';
+import { conversationRepository } from './repositories/conversation.repository';
 import dotenv from 'dotenv';
 import express from 'express';
 import z from 'zod';
@@ -14,8 +15,6 @@ const client = new OpenAI({
 const app = express();
 app.use(express.json());
 const port = process.env.PORT || 3000;
-
-const conversations = new Map<string, string>();
 
 const chatSchema = z.object({
   prompt: z
@@ -38,14 +37,15 @@ app.post('/api/chat', async (req: Request, res: Response) => {
 
     // models: https://platform.openai.com/docs/models/compare?model=o4-mini
     const response = await client.responses.create({
-      model: 'gpt-4o-mini1',
+      model: 'gpt-4o-mini',
       input: prompt,
       temperature: 0.2,
       max_output_tokens: 100,
-      previous_response_id: conversations.get(conversationId),
+      previous_response_id:
+        conversationRepository.getLastResponseId(conversationId),
     });
 
-    conversations.set(conversationId, response.id);
+    conversationRepository.setLastResponseId(conversationId, response.id);
 
     res.json({ message: response.output_text });
   } catch (error) {
