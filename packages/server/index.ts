@@ -33,20 +33,24 @@ app.post('/api/chat', async (req: Request, res: Response) => {
     return;
   }
 
-  const { prompt, conversationId } = req.body;
+  try {
+    const { prompt, conversationId } = req.body;
 
-  // models: https://platform.openai.com/docs/models/compare?model=o4-mini
-  const response = await client.responses.create({
-    model: 'gpt-4o-mini',
-    input: prompt,
-    temperature: 0.2,
-    max_output_tokens: 100,
-    previous_response_id: conversations.get(conversationId),
-  });
+    // models: https://platform.openai.com/docs/models/compare?model=o4-mini
+    const response = await client.responses.create({
+      model: 'gpt-4o-mini1',
+      input: prompt,
+      temperature: 0.2,
+      max_output_tokens: 100,
+      previous_response_id: conversations.get(conversationId),
+    });
 
-  conversations.set(conversationId, response.id);
+    conversations.set(conversationId, response.id);
 
-  res.json({ message: response.output_text });
+    res.json({ message: response.output_text });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate a response.' });
+  }
 });
 
 app.listen(port, () => {
