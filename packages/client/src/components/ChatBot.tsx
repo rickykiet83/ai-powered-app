@@ -20,13 +20,14 @@ type Message = {
 
 const ChatBot = () => {
   const [messages, setMessages] = useState<Message[]>([]);
-
+  const [isBotTyping, setIsBotTyping] = useState(false);
   const conversationId = useRef(crypto.randomUUID());
 
   const { register, handleSubmit, reset, formState } = useForm<ChatFormData>();
 
   const submit = async ({ prompt }: ChatFormData) => {
     setMessages((prev) => [...prev, { content: prompt, role: 'user' }]);
+    setIsBotTyping(true);
 
     reset({ prompt: '' });
 
@@ -35,6 +36,7 @@ const ChatBot = () => {
       conversationId: conversationId.current,
     });
     setMessages((prev) => [...prev, { content: data.message, role: 'bot' }]);
+    setIsBotTyping(false);
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLFormElement>) => {
@@ -45,8 +47,8 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="flex flex-col">
-      <div className="flex flex-col flex-1 gap-3 mb-10 overflow-y-auto">
+    <div className="">
+      <div className="flex flex-col gap-3 mb-10">
         {messages.map((message, index) => (
           <p
             key={index}
@@ -59,6 +61,13 @@ const ChatBot = () => {
             <ReactMarkdown>{message.content}</ReactMarkdown>
           </p>
         ))}
+        {isBotTyping && (
+          <div className="flex self-start gap-1 px-3 py-3 bg-gray-200 rounded-xl">
+            <div className="w-2 h-2 rounded-full bg-gray-800 animate-pulse"></div>
+            <div className="w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.2s]"></div>
+            <div className="w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.4s]"></div>
+          </div>
+        )}
       </div>
       <form
         onSubmit={handleSubmit(submit)}
