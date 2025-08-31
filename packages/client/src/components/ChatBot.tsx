@@ -3,6 +3,7 @@ import { FaArrowUp } from 'react-icons/fa';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import axios from 'axios';
+import ReactMarkdown from 'react-markdown';
 
 type ChatFormData = {
   prompt: string;
@@ -44,8 +45,8 @@ const ChatBot = () => {
   };
 
   return (
-    <div>
-      <div className="flex flex-col gap-3 items-end mb-10">
+    <div className="flex flex-col">
+      <div className="flex flex-col flex-1 gap-3 mb-10 overflow-y-auto">
         {messages.map((message, index) => (
           <p
             key={index}
@@ -55,7 +56,7 @@ const ChatBot = () => {
                 : 'bg-gray-100 text-black self-start'
             }`}
           >
-            {message.content}
+            <ReactMarkdown>{message.content}</ReactMarkdown>
           </p>
         ))}
       </div>
@@ -74,11 +75,7 @@ const ChatBot = () => {
           autoFocus
           maxLength={1000}
         />
-        <Button
-          disabled={!formState.isValid}
-          className="rounded-full w-9 h-9"
-          type="submit"
-        >
+        <Button disabled={!formState.isValid} className="rounded-full w-9 h-9">
           <FaArrowUp />
         </Button>
       </form>
