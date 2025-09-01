@@ -21,26 +21,35 @@ type Message = {
 const ChatBot = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isBotTyping, setIsBotTyping] = useState(false);
-  const formRef = useRef<HTMLFormElement | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const lastMessageRef = useRef<HTMLDivElement | null>(null);
   const conversationId = useRef(crypto.randomUUID());
   const { register, handleSubmit, reset, formState } = useForm<ChatFormData>();
 
   useEffect(() => {
-    formRef.current?.scrollIntoView({ behavior: 'smooth' });
+    lastMessageRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
   const submit = async ({ prompt }: ChatFormData) => {
-    setMessages((prev) => [...prev, { content: prompt, role: 'user' }]);
-    setIsBotTyping(true);
+    try {
+      setMessages((prev) => [...prev, { content: prompt, role: 'user' }]);
+      setIsBotTyping(true);
+      setError('');
 
-    reset({ prompt: '' });
+      reset({ prompt: '' });
 
-    const { data } = await axios.post<ChatResponse>('/api/chat', {
-      prompt,
-      conversationId: conversationId.current,
-    });
-    setMessages((prev) => [...prev, { content: data.message, role: 'bot' }]);
-    setIsBotTyping(false);
+      const { data } = await axios.post<ChatResponse>('/api/chat', {
+        prompt,
+        conversationId: conversationId.current,
+      });
+      setMessages((prev) => [...prev, { content: data.message, role: 'bot' }]);
+      setIsBotTyping(false);
+    } catch (error) {
+      console.error(error);
+      setError('Something went wrong, try again!');
+    } finally {
+      setIsBotTyping(false);
+    }
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLFormElement>) => {
@@ -59,11 +68,12 @@ const ChatBot = () => {
   };
 
   return (
-    <div className="">
-      <div className="flex flex-col gap-3 mb-10">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col flex-1 gap-3 mb-10 overflow-y-auto">
         {messages.map((message, index) => (
-          <p
+          <div
             key={index}
+            ref={index === messages.length - 1 ? lastMessageRef : null}
             onCopy={onCopyMessage}
             className={`px-3 py-1 rounded-xl ${
               message.role === 'user'
@@ -72,7 +82,7 @@ const ChatBot = () => {
             }`}
           >
             <ReactMarkdown>{message.content}</ReactMarkdown>
-          </p>
+          </div>
         ))}
         {isBotTyping && (
           <div className="flex self-start gap-1 px-3 py-3 bg-gray-200 rounded-xl">
@@ -81,9 +91,9 @@ const ChatBot = () => {
             <div className="w-2 h-2 rounded-full bg-gray-800 animate-pulse [animation-delay:0.4s]"></div>
           </div>
         )}
+        {error && <p className="text-red-500">{error}</p>}
       </div>
       <form
-        ref={formRef}
         onSubmit={handleSubmit(submit)}
         onKeyDown={handleKeyDown}
         className="flex flex-col gap-2 items-end border-2 p-4 rounded-3xl"
