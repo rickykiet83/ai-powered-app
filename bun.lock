@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "my-app",
+      "name": "ai-powered-app",
       "devDependencies": {
         "@types/bun": "latest",
         "concurrently": "^9.2.1",
